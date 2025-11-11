@@ -1,0 +1,39 @@
+cybersafe/
+├── requirements.txt
+├── cybers.py
+├── README.md
+├── static/
+│   ├── index.html          # Welcome screen only
+│   ├── categories.html     # Category selection
+│   ├── scenarios.html      # Scenario list
+│   ├── scenario.html       # Intro for chosen scenario
+│   ├── chat.html           # The actual training chat
+│   ├── results.html        # Debrief/results
+│   ├── css/
+│   │   └── styles.css      # All shared styles
+│   └── js/
+│       ├── api.js          # API calls
+│       └── app.js          # Shared logic
+├── players/
+│   ├── mentor.json         # Friendly guide (I'll create)
+│   ├── phishing_emailer.json
+│   ├── romance_scammer.json
+│   ├── fake_friend.json
+│   ├── cyberbully.json
+│   └── tech_support_scammer.json
+└── scenarios/
+    ├── phishing_urgent_email.json
+    ├── phishing_prize_winner.json
+    ├── phishing_friend_in_trouble.json
+    ├── scam_romance_1.json
+    ├── scam_romance_2.json
+    ├── scam_prize_1.json
+    ├── identity_catfish_1.json
+    ├── identity_fake_profile.json
+    ├── identity_impersonation.json
+    ├── bully_group_chat.json
+    ├── bully_rumor_spread.json
+    ├── bully_public_shaming.json
+    ├── malware_free_game.json
+    ├── malware_fake_antivirus.json
+    └── malware_email_attachment.json

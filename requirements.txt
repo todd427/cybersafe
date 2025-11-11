@@ -1,0 +1,17 @@
+# Cyber Safer - Requirements
+# Python 3.10+ recommended
+
+# Web Framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+
+# ML / Transformers
+torch>=2.0.0
+transformers>=4.35.0
+accelerate>=0.24.0
+bitsandbytes>=0.41.0
+
+# Optional: For better performance
+sentencepiece>=0.1.99
+protobuf>=3.20.0

@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cyber Safer</title>
+<style>
+:root {
+  --bg: #0d1117;
+  --fg: #e6edf3;
+  --accent: #58a6ff;
+  --border: #30363d;
+  --success: #3fb950;
+  --warning: #d29922;
+  --danger: #f85149;
+}
+body {
+  font-family: "Segoe UI", system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  font-size: 1.1rem;
+}
+
+/* Header */
+header {
+  background: #161b22;
+  color: var(--fg);
+  padding: 0.75rem 1rem;
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+}
+.logo { font-weight: 700; color: var(--accent); }
+.mode-indicator {
+  font-size: 0.9rem;
+  color: var(--warning);
+  font-weight: 600;
+}
+
+/* Main screens */
+.screen {
+  display: none;
+  flex: 1;
+  overflow-y: auto;
+  padding: 2rem;
+}
+.screen.active {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Welcome screen */
+#welcome {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+#welcome h1 {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, var(--accent), var(--success));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+#welcome p {
+  font-size: 1.2rem;
+  max-width: 600px;
+  margin-bottom: 2rem;
+  color: #8b949e;
+}
+.big-button {
+  padding: 1rem 2rem;
+  font-size: 1.3rem;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin: 0.5rem;
+}
+.big-button:hover {
+  background: #1f6feb;
+  transform: translateY(-2px);
+}
+
+/* Scenario selection */
+#scenarioSelect {
+  padding: 2rem;
+}
+.category {
+  margin-bottom: 2rem;
+  background: #161b22;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+.category h2 {
+  color: var(--accent);
+  margin-top: 0;
+}
+.scenario-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+.scenario-card {
+  background: #0d1117;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.scenario-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+.scenario-card h3 {
+  margin-top: 0;
+  color: var(--fg);
+  font-size: 1.1rem;
+}
+.scenario-card .difficulty {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+}
+.difficulty.beginner { background: var(--success); color: #000; }
+.difficulty.medium { background: var(--warning); color: #000; }
+.difficulty.hard { background: var(--danger); color: #fff; }
+
+/* Scenario intro */
+#scenarioIntro {
+  max-width: 800px;
+  margin: 0 auto;
+}
+#scenarioIntro h2 {
+  color: var(--accent);
+}
+#scenarioIntro .intro-text {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin: 2rem 0;
+}
+
+/* Chat interface */
+#chat {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  line-height: 1.6;
+}
+.msg { 
+  margin-bottom: 1.2em; 
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+.me { 
+  font-weight: 600; 
+  color: #2f81f7; 
+}
+.bot { 
+  color: var(--fg); 
+}
+.system { 
+  color: #8b949e; 
+  font-style: italic; 
+  font-size: 0.95rem; 
+}
+.red-flag-hint {
+  background: rgba(63, 185, 80, 0.1);
+  border-left: 3px solid var(--success);
+  padding: 0.5rem;
+  margin: 0.5rem 0;
+  color: var(--success);
+  font-size: 0.9rem;
+}
+
+/* Footer / input area */
+footer {
+  display: flex;
+  padding: 0.75rem;
+  background: #161b22;
+  border-top: 1px solid var(--border);
+  gap: 0.5rem;
+}
+input {
+  flex: 1;
+  padding: 0.6rem;
+  font-size: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #0d1117;
+  color: var(--fg);
+}
+button {
+  padding: 0.6rem 1rem;
+  font-size: 1rem;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+button:hover { background: #1f6feb; }
+button:disabled {
+  background: #30363d;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+button.secondary {
+  background: #21262d;
+  color: var(--fg);
+}
+button.secondary:hover { background: #30363d; }
+button.danger {
+  background: var(--danger);
+}
+button.danger:hover { background: #d02828; }
+
+/* Debrief screen */
+#debrief {
+  max-width: 800px;
+  margin: 0 auto;
+}
+.score-display {
+  text-align: center;
+  margin: 2rem 0;
+}
+.score-circle {
+  display: inline-block;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+.passed { background: var(--success); }
+.failed { background: var(--danger); }
+.red-flags-list {
+  margin: 2rem 0;
+}
+.flag-item {
+  padding: 0.5rem;
+  margin: 0.5rem 0;
+  border-radius: 4px;
+}
+.flag-item.detected {
+  background: rgba(63, 185, 80, 0.2);
+  border-left: 3px solid var(--success);
+}
+.flag-item.missed {
+  background: rgba(248, 81, 73, 0.2);
+  border-left: 3px solid var(--danger);
+}
+</style>
+</head>
+<body>
+
+<header>
+  <span class="logo">🛡️ Cyber Safer</span>
+  <span class="mode-indicator" id="modeIndicator"></span>
+</header>
+
+<!-- Welcome Screen -->
+<div id="welcome" class="screen active">
+  <h1>🛡️ Cyber Safer</h1>
+  <p>Learn to recognize and defend against online threats through interactive scenarios.</p>
+  <button class="big-button" onclick="showScenarios()">Start Training</button>
+  <button class="big-button secondary" onclick="showFreePlay()">Free Play Mode</button>
+</div>
+
+<!-- Scenario Selection -->
+<div id="scenarioSelect" class="screen">
+  <h1>Choose a Training Scenario</h1>
+  <div id="categoriesContainer"></div>
+  <button class="secondary" onclick="showWelcome()">← Back</button>
+</div>
+
+<!-- Scenario Introduction -->
+<div id="scenarioIntro" class="screen">
+  <h2 id="introTitle"></h2>
+  <div class="intro-text" id="introText"></div>
+  <button class="big-button" onclick="startScenarioChat()">Begin Scenario</button>
+  <button class="secondary" onclick="showScenarios()">← Back to Scenarios</button>
+</div>
+
+<!-- Scenario Chat -->
+<div id="scenarioChat" class="screen">
+  <div id="chat"></div>
+  <footer>
+    <input id="input" placeholder="Type your response..." />
+    <button id="send">Send</button>
+    <button class="danger" onclick="completeScenario()">Finish</button>
+  </footer>
+</div>
+
+<!-- Debrief / Results -->
+<div id="debrief" class="screen">
+  <h2>Scenario Complete!</h2>
+  <div class="score-display">
+    <div class="score-circle" id="scoreCircle">
+      <span id="scoreValue">0</span>
+    </div>
+    <h3 id="passedStatus"></h3>
+  </div>
+  
+  <div class="red-flags-list">
+    <h3>Red Flags</h3>
+    <div id="redFlagsContainer"></div>
+  </div>
+  
+  <div id="feedbackText"></div>
+  
+  <button class="big-button" onclick="showScenarios()">Try Another Scenario</button>
+  <button class="secondary" onclick="showWelcome()">← Main Menu</button>
+</div>
+
+<script>
+const API = location.origin;
+let currentScenarioId = null;
+let isSending = false;
+
+// Screen management
+function showScreen(screenId) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(screenId).classList.add('active');
+}
+
+function showWelcome() { showScreen('welcome'); }
+function showScenarios() { loadScenarios(); showScreen('scenarioSelect'); }
+function showIntro() { showScreen('scenarioIntro'); }
+function showChat() { showScreen('scenarioChat'); }
+function showDebrief() { showScreen('debrief'); }
+
+// Load and display scenarios
+async function loadScenarios() {
+  const res = await fetch(API + '/scenarios');
+  const data = await res.json();
+  
+  const container = document.getElementById('categoriesContainer');
+  container.innerHTML = '';
+  
+  const categoryNames = {
+    'phishing': '🎣 Phishing',
+    'online_scams': '💔 Online Scams',
+    'identity_theft': '🎭 Identity Theft',
+    'cyberbullying': '😡 Cyberbullying',
+    'malware': '🦠 Malware & Ransomware'
+  };
+  
+  for (const [category, scenarios] of Object.entries(data.categories)) {
+    const catDiv = document.createElement('div');
+    catDiv.className = 'category';
+    
+    const title = document.createElement('h2');
+    title.textContent = categoryNames[category] || category;
+    catDiv.appendChild(title);
+    
+    const grid = document.createElement('div');
+    grid.className = 'scenario-grid';
+    
+    scenarios.forEach(scenario => {
+      const card = document.createElement('div');
+      card.className = 'scenario-card';
+      card.onclick = () => selectScenario(scenario.id);
+      
+      card.innerHTML = `
+        <span class="difficulty ${scenario.difficulty}">${scenario.difficulty}</span>
+        <h3>${scenario.title}</h3>
+        <p>${scenario.description}</p>
+      `;
+      
+      grid.appendChild(card);
+    });
+    
+    catDiv.appendChild(grid);
+    container.appendChild(catDiv);
+  }
+}
+
+// Select and show scenario intro
+async function selectScenario(scenarioId) {
+  currentScenarioId = scenarioId;
+  
+  const res = await fetch(API + `/scenario/${scenarioId}`);
+  const scenario = await res.json();
+  
+  document.getElementById('introTitle').textContent = scenario.title;
+  document.getElementById('introText').textContent = scenario.introduction;
+  document.getElementById('modeIndicator').textContent = `Training: ${scenario.category}`;
+  
+  showIntro();
+}
+
+// Start scenario chat
+async function startScenarioChat() {
+  const res = await fetch(API + `/scenario/${currentScenarioId}/start`, {
+    method: 'POST'
+  });
+  const data = await res.json();
+  
+  // Clear chat
+  document.getElementById('chat').innerHTML = '';
+  
+  // Show initial message
+  if (data.initial_message) {
+    append('bot', data.initial_message, data.adversary);
+  }
+  
+  showChat();
+}
+
+// Send message in scenario
+async function sendMessage() {
+  const input = document.getElementById('input');
+  const text = input.value.trim();
+  if (!text || isSending) return;
+  
+  isSending = true;
+  document.getElementById('send').disabled = true;
+  input.value = '';
+  input.disabled = true;
+  
+  append('me', text);
+  
+  try {
+    const res = await fetch(API + '/chat/stream', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({message: text})
+    });
+    
+    const reader = res.body.getReader();
+    let botResponse = '';
+    
+    while(true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      const chunk = new TextDecoder().decode(value);
+      botResponse += chunk;
+      updateLastBot(chunk);
+    }
+    
+  } catch (e) {
+    append('system', "⚠️ Connection error: " + e.message);
+  } finally {
+    isSending = false;
+    document.getElementById('send').disabled = false;
+    input.disabled = false;
+    input.focus();
+  }
+}
+
+// Complete scenario and show results
+async function completeScenario() {
+  const res = await fetch(API + '/scenario/complete', { method: 'POST' });
+  const results = await res.json();
+  
+  // Display score
+  document.getElementById('scoreValue').textContent = results.score;
+  const scoreCircle = document.getElementById('scoreCircle');
+  scoreCircle.className = 'score-circle ' + (results.passed ? 'passed' : 'failed');
+  
+  document.getElementById('passedStatus').textContent = results.passed ? 
+    '✅ Passed!' : '❌ Keep Practicing';
+  
+  // Display red flags
+  const flagsContainer = document.getElementById('redFlagsContainer');
+  flagsContainer.innerHTML = '';
+  
+  results.success_criteria_total.forEach(flag => {
+    const div = document.createElement('div');
+    div.className = 'flag-item ' + 
+      (results.success_criteria_met.includes(flag) ? 'detected' : 'missed');
+    div.textContent = (results.success_criteria_met.includes(flag) ? '✅ ' : '❌ ') + 
+      flag.replace(/_/g, ' ');
+    flagsContainer.appendChild(div);
+  });
+  
+  document.getElementById('feedbackText').innerHTML = 
+    `<h3>Feedback</h3><p>${results.feedback}</p>`;
+  
+  showDebrief();
+}
+
+// Chat helpers
+function append(who, text, name = 'You') {
+  const el = document.createElement('div');
+  el.className = 'msg ' + who;
+  let label = who === 'me' ? 'You:\n' : name + ':\n';
+  el.textContent = label + text;
+  document.getElementById('chat').appendChild(el);
+  document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
+}
+
+function updateLastBot(chunk) {
+  const chat = document.getElementById('chat');
+  let last = chat.lastElementChild;
+  if (!last || !last.classList.contains('bot-stream')) {
+    last = document.createElement('div');
+    last.className = 'msg bot bot-stream';
+    last.textContent = 'Adversary:\n';
+    chat.appendChild(last);
+  }
+  last.textContent += chunk;
+  chat.scrollTop = chat.scrollHeight;
+}
+
+// Event listeners
+document.getElementById('send').onclick = sendMessage;
+document.getElementById('input').onkeypress = e => {
+  if (e.key === 'Enter' && !isSending) sendMessage();
+};
+</script>
+</body>
+</html>

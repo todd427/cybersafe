@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Choose Scenario - Cyber Safer</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header>
+    <a href="/" class="logo">🛡️ Cyber Safer</a>
+    <span class="mode-indicator" id="categoryName"></span>
+  </header>
+
+  <main>
+    <div class="container">
+      <h1 id="pageTitle">Choose a Scenario</h1>
+      
+      <div class="scenario-grid" id="scenarioGrid">
+        <!-- Scenarios will be loaded here -->
+      </div>
+
+      <div class="mt-2">
+        <a href="categories.html" class="button secondary">← Back to Categories</a>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script>
+    const categoryNames = {
+      'phishing': '🎣 Phishing',
+      'online_scams': '💔 Online Scams',
+      'identity_theft': '🎭 Identity Theft',
+      'cyberbullying': '😡 Cyberbullying',
+      'malware': '🦠 Malware & Ransomware'
+    };
+
+    async function loadScenarios() {
+      const params = new URLSearchParams(window.location.search);
+      const category = params.get('category');
+      
+      if (!category) {
+        window.location.href = 'categories.html';
+        return;
+      }
+
+      try {
+        const data = await API.getScenarios();
+        const scenarios = data.categories[category] || [];
+        
+        const categoryName = categoryNames[category] || category;
+        document.getElementById('pageTitle').textContent = categoryName;
+        document.getElementById('categoryName').textContent = `Training: ${category}`;
+        document.title = `${categoryName} - Cyber Safer`;
+        
+        const grid = document.getElementById('scenarioGrid');
+        
+        if (scenarios.length === 0) {
+          grid.innerHTML = '<p>No scenarios available for this category yet.</p>';
+          return;
+        }
+        
+        scenarios.forEach(scenario => {
+          const card = document.createElement('a');
+          card.href = `scenario.html?id=${scenario.id}`;
+          card.className = 'scenario-card';
+          
+          card.innerHTML = `
+            <span class="difficulty ${scenario.difficulty}">${scenario.difficulty}</span>
+            <h3>${scenario.title}</h3>
+            <p>${scenario.description}</p>
+          `;
+          
+          grid.appendChild(card);
+        });
+      } catch (error) {
+        console.error('Failed to load scenarios:', error);
+        document.getElementById('scenarioGrid').innerHTML = 
+          '<p style="color: var(--danger)">Failed to load scenarios. Please try again.</p>';
+      }
+    }
+
+    loadScenarios();
+  </script>
+</body>
+</html>
