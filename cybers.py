@@ -2,8 +2,10 @@
 """
 Cyber Safer — Interactive cybersecurity training through AI-powered scenarios.
 
+FIXED VERSION with correct /api routes
+
 Run:
-  uvicorn cybers:app --reload --port 8021
+  uvicorn cybers_fixed:app --reload --port 8021
 Then open http://localhost:8021/
 """
 
@@ -259,7 +261,7 @@ async def startup_event():
     scenarios_cache = load_scenarios()
     print(f"✅ Loaded {len(scenarios_cache)} scenarios")
 
-# ---------- API Endpoints ----------
+# ---------- API Endpoints (ALL WITH /api PREFIX) ----------
 
 @app.get("/api")
 async def root():
@@ -285,7 +287,7 @@ async def list_scenarios():
     
     return {"categories": categories}
 
-@app.get("/scenario/{scenario_id}")
+@app.get("/api/scenario/{scenario_id}")
 async def get_scenario(scenario_id: str):
     """Get details of a specific scenario."""
     if scenario_id not in scenarios_cache:
@@ -293,7 +295,7 @@ async def get_scenario(scenario_id: str):
     
     return scenarios_cache[scenario_id]
 
-@app.post("/scenario/{scenario_id}/start")
+@app.post("/api/scenario/{scenario_id}/start")
 async def start_scenario(scenario_id: str):
     """Start a new scenario session."""
     global current_scenario, scenario_state, player, system_text, player_filename
@@ -342,7 +344,7 @@ async def start_scenario(scenario_id: str):
         "adversary": player.get("name")
     }
 
-@app.post("/chat/stream")
+@app.post("/api/chat/stream")
 async def chat_stream(payload: Dict[str, str]):
     """Streamed chat endpoint - works in both normal and scenario mode."""
     message = payload.get("message", "").strip()
@@ -361,7 +363,7 @@ async def chat_stream(payload: Dict[str, str]):
     
     return StreamingResponse(stream_response(message), media_type="text/plain")
 
-@app.post("/scenario/complete")
+@app.post("/api/scenario/complete")
 async def complete_scenario():
     """Mark scenario as complete and calculate score."""
     global scenario_state, current_scenario
@@ -394,7 +396,7 @@ async def complete_scenario():
     
     return result
 
-@app.post("/scenario/exit")
+@app.post("/api/scenario/exit")
 async def exit_scenario():
     """Exit current scenario and return to normal mode."""
     global current_scenario, scenario_state, player, system_text, player_filename

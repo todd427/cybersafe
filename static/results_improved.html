@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Results - Cyber Safer</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .results-summary {
+      background: #161b22;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin: 2rem 0;
+    }
+    
+    .results-summary h3 {
+      margin-top: 0;
+      color: var(--accent);
+    }
+    
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin: 1rem 0;
+    }
+    
+    .stat-box {
+      background: #0d1117;
+      padding: 1rem;
+      border-radius: 6px;
+      text-align: center;
+    }
+    
+    .stat-value {
+      font-size: 2rem;
+      font-weight: bold;
+      color: var(--accent);
+    }
+    
+    .stat-label {
+      color: #8b949e;
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+    }
+    
+    .performance-message {
+      background: #0d1117;
+      padding: 1rem;
+      border-radius: 6px;
+      border-left: 3px solid var(--accent);
+      margin: 1rem 0;
+    }
+    
+    .performance-message.excellent {
+      border-left-color: var(--success);
+    }
+    
+    .performance-message.good {
+      border-left-color: var(--accent);
+    }
+    
+    .performance-message.needs-practice {
+      border-left-color: var(--warning);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="/" class="logo">🛡️ Cyber Safer</a>
+  </header>
+
+  <main>
+    <div class="results-container">
+      <h1>Scenario Complete!</h1>
+      
+      <div class="score-display">
+        <div class="score-circle" id="scoreCircle">
+          <span id="scoreValue">0</span>
+        </div>
+        <h2 id="passStatus">Processing...</h2>
+      </div>
+
+      <div class="results-summary">
+        <h3>Your Performance</h3>
+        <div class="stat-grid">
+          <div class="stat-box">
+            <div class="stat-value" id="detectedCount">0</div>
+            <div class="stat-label">Red Flags Detected</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-value" id="requiredCount">0</div>
+            <div class="stat-label">Critical Flags Found</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-value" id="totalCount">0</div>
+            <div class="stat-label">Total Red Flags</div>
+          </div>
+        </div>
+        
+        <div class="performance-message" id="performanceMessage">
+          <!-- Dynamic performance message will go here -->
+        </div>
+      </div>
+
+      <div class="flag-list">
+        <h2>Red Flags Analysis</h2>
+        <div id="flagsContainer"></div>
+      </div>
+
+      <div class="feedback-box" id="feedbackBox">
+        <h2>What You Learned</h2>
+        <div id="feedbackContent"></div>
+      </div>
+
+      <div class="text-center mt-2">
+        <a href="categories.html" class="button big-button">Try Another Scenario</a>
+        <a href="/" class="button secondary">← Main Menu</a>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    function formatFeedback(text) {
+      // Convert numbered lists to HTML
+      const lines = text.split(/\d+[\)\.]\s*/);
+      
+      if (lines.length > 2) {
+        const intro = lines[0].trim();
+        const items = lines.slice(1).filter(l => l.trim());
+        
+        let html = intro ? `<p>${intro}</p>` : '';
+        html += '<ul>';
+        items.forEach(item => {
+          html += `<li>${item.trim()}</li>`;
+        });
+        html += '</ul>';
+        return html;
+      }
+      
+      return `<p>${text}</p>`;
+    }
+
+    function getPerformanceLevel(score) {
+      if (score >= 80) return 'excellent';
+      if (score >= 60) return 'good';
+      return 'needs-practice';
+    }
+
+    function getPerformanceMessage(results) {
+      const metCount = results.success_criteria_met.length;
+      const requiredCount = results.success_criteria_total.length;
+      const detectedCount = results.red_flags_detected.length;
+      const score = results.score;
+      
+      let message = '';
+      let level = 'needs-practice';
+      
+      if (score >= 80) {
+        level = 'excellent';
+        message = `<strong>Excellent work!</strong> You identified ${metCount} out of ${requiredCount} critical red flags. `;
+        if (detectedCount > metCount) {
+          message += `You even spotted ${detectedCount - metCount} additional warning signs. `;
+        }
+        message += 'You showed strong awareness of this threat.';
+      } else if (score >= 60) {
+        level = 'good';
+        message = `<strong>Good effort!</strong> You caught ${metCount} out of ${requiredCount} critical red flags. `;
+        if (metCount < requiredCount) {
+          message += `There ${requiredCount - metCount === 1 ? 'was' : 'were'} ${requiredCount - metCount} important warning sign${requiredCount - metCount === 1 ? '' : 's'} you missed. `;
+        }
+        message += 'Review the feedback below to strengthen your detection skills.';
+      } else {
+        level = 'needs-practice';
+        if (metCount === 0) {
+          message = `<strong>Keep practicing!</strong> This scenario had ${requiredCount} critical red flags to watch for. `;
+          message += 'Don\'t worry - recognizing online threats takes practice. Review the feedback carefully to learn what to look for next time.';
+        } else {
+          message = `<strong>Making progress!</strong> You found ${metCount} out of ${requiredCount} critical red flags. `;
+          message += 'You\'re starting to recognize some warning signs. Review the ones you missed to improve further.';
+        }
+      }
+      
+      return { message, level };
+    }
+
+    function displayResults() {
+      const resultsJson = sessionStorage.getItem('scenarioResults');
+      
+      if (!resultsJson) {
+        document.querySelector('.results-container').innerHTML = 
+          '<h1>Error</h1><p>No results found. Please complete a scenario first.</p>' +
+          '<a href="categories.html" class="button">Back to Categories</a>';
+        return;
+      }
+
+      const results = JSON.parse(resultsJson);
+      
+      // Display score
+      document.getElementById('scoreValue').textContent = results.score;
+      const scoreCircle = document.getElementById('scoreCircle');
+      const passed = results.score >= 60;
+      scoreCircle.classList.add(passed ? 'passed' : 'failed');
+      
+      document.getElementById('passStatus').textContent = 
+        results.score >= 80 ? '🎉 Excellent!' :
+        results.score >= 60 ? '✅ Passed!' : 
+        '📚 Keep Practicing';
+      
+      // Display stats
+      document.getElementById('detectedCount').textContent = results.red_flags_detected.length;
+      document.getElementById('requiredCount').textContent = results.success_criteria_met.length;
+      document.getElementById('totalCount').textContent = results.success_criteria_total.length;
+      
+      // Display performance message
+      const { message, level } = getPerformanceMessage(results);
+      const perfMsg = document.getElementById('performanceMessage');
+      perfMsg.innerHTML = message;
+      perfMsg.classList.add(level);
+      
+      // Display red flags with better labels
+      const flagsContainer = document.getElementById('flagsContainer');
+      
+      // Show critical flags first
+      const criticalFlags = results.success_criteria_total;
+      const otherFlags = results.red_flags_detected.filter(f => !criticalFlags.includes(f));
+      
+      if (criticalFlags.length > 0) {
+        const criticalHeader = document.createElement('h3');
+        criticalHeader.textContent = 'Critical Red Flags (Required)';
+        criticalHeader.style.color = 'var(--accent)';
+        criticalHeader.style.marginTop = '0';
+        flagsContainer.appendChild(criticalHeader);
+        
+        criticalFlags.forEach(flag => {
+          const flagDiv = document.createElement('div');
+          const detected = results.success_criteria_met.includes(flag);
+          flagDiv.className = `flag-item ${detected ? 'detected' : 'missed'}`;
+          
+          const icon = detected ? '✅' : '❌';
+          const status = detected ? 'You spotted this!' : 'Missed - watch for this next time';
+          const flagName = flag.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+          
+          flagDiv.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span><strong>${icon} ${flagName}</strong></span>
+              <span style="font-size: 0.85em; color: #8b949e;">${status}</span>
+            </div>
+          `;
+          flagsContainer.appendChild(flagDiv);
+        });
+      }
+      
+      // Show additional flags detected
+      if (otherFlags.length > 0) {
+        const bonusHeader = document.createElement('h3');
+        bonusHeader.textContent = 'Additional Warning Signs You Spotted';
+        bonusHeader.style.color = 'var(--success)';
+        bonusHeader.style.marginTop = '1.5rem';
+        flagsContainer.appendChild(bonusHeader);
+        
+        const bonusNote = document.createElement('p');
+        bonusNote.textContent = 'Great job! These weren\'t required, but you noticed them anyway:';
+        bonusNote.style.color = '#8b949e';
+        bonusNote.style.fontSize = '0.9em';
+        flagsContainer.appendChild(bonusNote);
+        
+        otherFlags.forEach(flag => {
+          const flagDiv = document.createElement('div');
+          flagDiv.className = 'flag-item detected';
+          flagDiv.style.background = 'rgba(88, 166, 255, 0.1)';
+          
+          const flagName = flag.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+          flagDiv.innerHTML = `<span>⭐ ${flagName}</span>`;
+          flagsContainer.appendChild(flagDiv);
+        });
+      }
+      
+      // Display feedback
+      document.getElementById('feedbackContent').innerHTML = formatFeedback(results.feedback);
+      
+      // Clear results from storage
+      sessionStorage.removeItem('scenarioResults');
+    }
+
+    displayResults();
+  </script>
+</body>
+</html>
