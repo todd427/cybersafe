@@ -5,22 +5,210 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cyber Safer</title>
   <link rel="stylesheet" href="css/styles.css">
+  <style>
+    /* Enhanced logo styling */
+    .logo-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .main-logo {
+      font-size: 3rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #58a6ff, #3fb950);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -1px;
+      margin: 0;
+    }
+
+    .ai-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 1rem;
+      background: linear-gradient(135deg, rgba(88, 166, 255, 0.15), rgba(63, 185, 80, 0.15));
+      border: 1px solid rgba(88, 166, 255, 0.3);
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #58a6ff;
+      position: relative;
+      overflow: hidden;
+      animation: glow 2s ease-in-out infinite;
+    }
+
+    /* Animated glow effect */
+    @keyframes glow {
+      0%, 100% {
+        box-shadow: 0 0 5px rgba(88, 166, 255, 0.3);
+      }
+      50% {
+        box-shadow: 0 0 20px rgba(88, 166, 255, 0.6);
+      }
+    }
+
+    /* Sparkle effect */
+    .ai-badge::before {
+      content: '✨';
+      font-size: 0.9rem;
+      animation: sparkle 1.5s ease-in-out infinite;
+    }
+
+    @keyframes sparkle {
+      0%, 100% {
+        opacity: 0.5;
+        transform: scale(1);
+      }
+      50% {
+        opacity: 1;
+        transform: scale(1.2);
+      }
+    }
+
+    /* Shimmer effect */
+    .ai-badge::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent
+      );
+      animation: shimmer 3s infinite;
+    }
+
+    @keyframes shimmer {
+      0% {
+        left: -100%;
+      }
+      100% {
+        left: 100%;
+      }
+    }
+
+    /* Alternative style - Tech badge */
+    .ai-badge-alt {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.3rem 0.8rem;
+      background: #0d1117;
+      border: 1px solid #58a6ff;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      color: #58a6ff;
+      box-shadow: 0 0 10px rgba(88, 166, 255, 0.3);
+    }
+
+    .ai-badge-alt::before {
+      content: '⚡';
+      animation: pulse 1s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 0.6;
+      }
+      50% {
+        opacity: 1;
+      }
+    }
+
+    /* Header simplified */
+    header .logo {
+      font-weight: 700;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 1.3rem;
+    }
+  </style>
 </head>
 <body>
   <header>
     <a href="/" class="logo">🛡️ Cyber Safer</a>
-    <p class="logo"><em>powered by AI.</em></p>
   </header>
 
   <main class="centered">
-    <h1 class="gradient">🛡️ Cyber Safer</h1>
-    <p class="logo"><em>powered by AI.</em></p>
+    <div class="logo-container">
+      <h1 class="main-logo">🛡️ Cyber Safer</h1>
+      <div class="ai-badge">
+        Powered by AI
+      </div>
+    </div>
+    
     <p class="subtitle">Learn to recognize and defend against online threats through interactive scenarios.</p>
     
     <div>
       <a href="categories.html" class="button big-button">Start Training</a>
-      <button class="button big-button secondary" onclick="alert('Free Play mode coming soon!')">Free Play Mode</button>
+      <button class="button big-button secondary" onclick="showComingSoon()">Free Play Mode</button>
     </div>
   </main>
+
+  <script>
+    // Replace alert with a nice message
+    function showComingSoon() {
+      const modal = document.createElement('div');
+      modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        animation: fadeIn 0.2s;
+      `;
+      
+      modal.innerHTML = `
+        <div style="
+          background: #161b22;
+          border: 2px solid #58a6ff;
+          border-radius: 12px;
+          padding: 2rem;
+          max-width: 400px;
+          text-align: center;
+          animation: slideUp 0.3s;
+        ">
+          <div style="font-size: 3rem; margin-bottom: 1rem;">🚀</div>
+          <h3 style="color: #58a6ff; margin: 0 0 1rem 0;">Coming Soon!</h3>
+          <p style="color: #e6edf3; margin: 0 0 1.5rem 0;">
+            Free Play mode is under development. Practice conversations with AI to improve your cybersecurity skills!
+          </p>
+          <button onclick="this.closest('div[style*=fixed]').remove()" style="
+            padding: 0.75rem 2rem;
+            background: #58a6ff;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+          " onmouseover="this.style.background='#1f6feb'" onmouseout="this.style.background='#58a6ff'">
+            Got it!
+          </button>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+    }
+  </script>
 </body>
 </html>

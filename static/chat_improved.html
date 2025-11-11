@@ -288,7 +288,12 @@
       messageDiv.appendChild(label);
       messageDiv.appendChild(content);
       messagesDiv.appendChild(messageDiv);
-      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      
+      // Smooth autoscroll
+      messagesDiv.scrollTo({
+        top: messagesDiv.scrollHeight,
+        behavior: 'smooth'
+      });
       
       if (who === 'user') {
         messageCount++;
@@ -386,7 +391,12 @@
       
       const content = lastMsg.querySelector('.content');
       content.textContent += chunk;
-      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      
+      // Smooth autoscroll during streaming
+      messagesDiv.scrollTo({
+        top: messagesDiv.scrollHeight,
+        behavior: 'smooth'
+      });
     }
 
     async function sendMessage() {

@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cyber Safer</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    /* Logo container */
+    .logo-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .main-logo {
+      font-size: 3rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #58a6ff, #3fb950);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -1px;
+      margin: 0;
+    }
+
+    /* STYLE 1: Glowing Badge (Default - most popular) */
+    .ai-badge-glow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 1rem;
+      background: linear-gradient(135deg, rgba(88, 166, 255, 0.15), rgba(63, 185, 80, 0.15));
+      border: 1px solid rgba(88, 166, 255, 0.3);
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #58a6ff;
+      position: relative;
+      overflow: hidden;
+      animation: glow 2s ease-in-out infinite;
+    }
+
+    @keyframes glow {
+      0%, 100% { box-shadow: 0 0 5px rgba(88, 166, 255, 0.3); }
+      50% { box-shadow: 0 0 20px rgba(88, 166, 255, 0.6); }
+    }
+
+    .ai-badge-glow::before {
+      content: '✨';
+      font-size: 0.9rem;
+      animation: sparkle 1.5s ease-in-out infinite;
+    }
+
+    @keyframes sparkle {
+      0%, 100% { opacity: 0.5; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.2); }
+    }
+
+    .ai-badge-glow::after {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      animation: shimmer 3s infinite;
+    }
+
+    @keyframes shimmer {
+      0% { left: -100%; }
+      100% { left: 100%; }
+    }
+
+    /* STYLE 2: Tech/Terminal Style */
+    .ai-badge-tech {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.3rem 0.8rem;
+      background: #0d1117;
+      border: 1px solid #58a6ff;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      color: #58a6ff;
+      box-shadow: 0 0 10px rgba(88, 166, 255, 0.3);
+    }
+
+    .ai-badge-tech::before {
+      content: '⚡';
+      animation: pulse 1s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.6; }
+      50% { opacity: 1; }
+    }
+
+    /* STYLE 3: Minimalist Chip */
+    .ai-badge-minimal {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.25rem 0.75rem;
+      background: rgba(88, 166, 255, 0.1);
+      border: 1px solid rgba(88, 166, 255, 0.3);
+      border-radius: 16px;
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      text-transform: lowercase;
+      color: #8b949e;
+    }
+
+    .ai-badge-minimal::before {
+      content: '🤖';
+      font-size: 0.85rem;
+    }
+
+    /* STYLE 4: Gradient Badge */
+    .ai-badge-gradient {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 1rem;
+      background: linear-gradient(135deg, #58a6ff, #3fb950);
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #000;
+      box-shadow: 0 4px 15px rgba(88, 166, 255, 0.4);
+    }
+
+    .ai-badge-gradient::before {
+      content: '🧠';
+      font-size: 0.9rem;
+    }
+
+    /* STYLE 5: Matrix/Cyber Style */
+    .ai-badge-matrix {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.35rem 0.9rem;
+      background: rgba(0, 255, 65, 0.05);
+      border: 1px solid rgba(0, 255, 65, 0.3);
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #0f7;
+      animation: matrix-glow 2s ease-in-out infinite;
+    }
+
+    @keyframes matrix-glow {
+      0%, 100% { box-shadow: 0 0 5px rgba(0, 255, 65, 0.3); }
+      50% { box-shadow: 0 0 15px rgba(0, 255, 65, 0.5); }
+    }
+
+    .ai-badge-matrix::before {
+      content: '◈';
+      animation: rotate 3s linear infinite;
+    }
+
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* Header simplified */
+    header .logo {
+      font-weight: 700;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 1.3rem;
+    }
+
+    /* Style selector (for demo - remove in production) */
+    .style-selector {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #161b22;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      z-index: 100;
+    }
+
+    .style-selector h4 {
+      margin: 0 0 0.5rem 0;
+      color: var(--accent);
+      font-size: 0.9rem;
+    }
+
+    .style-selector button {
+      display: block;
+      width: 100%;
+      margin: 0.25rem 0;
+      padding: 0.5rem;
+      background: #0d1117;
+      border: 1px solid var(--border);
+      color: var(--fg);
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      text-align: left;
+    }
+
+    .style-selector button:hover {
+      background: #21262d;
+      border-color: var(--accent);
+    }
+
+    .style-selector button.active {
+      background: var(--accent);
+      color: #000;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="/" class="logo">🛡️ Cyber Safer</a>
+  </header>
+
+  <main class="centered">
+    <div class="logo-container">
+      <h1 class="main-logo">🛡️ Cyber Safer</h1>
+      
+      <!-- Change the class here to switch styles: -->
+      <!-- Options: ai-badge-glow, ai-badge-tech, ai-badge-minimal, ai-badge-gradient, ai-badge-matrix -->
+      <div id="aiBadge" class="ai-badge-glow">
+        Powered by AI
+      </div>
+    </div>
+    
+    <p class="subtitle">Learn to recognize and defend against online threats through interactive scenarios.</p>
+    
+    <div>
+      <a href="categories.html" class="button big-button">Start Training</a>
+      <button class="button big-button secondary" onclick="showComingSoon()">Free Play Mode</button>
+    </div>
+  </main>
+
+  <!-- Style Selector (REMOVE THIS IN PRODUCTION) -->
+  <div class="style-selector">
+    <h4>Try Badge Styles:</h4>
+    <button onclick="changeBadgeStyle('ai-badge-glow')" class="active">✨ Glowing</button>
+    <button onclick="changeBadgeStyle('ai-badge-tech')">⚡ Tech/Terminal</button>
+    <button onclick="changeBadgeStyle('ai-badge-minimal')">🤖 Minimalist</button>
+    <button onclick="changeBadgeStyle('ai-badge-gradient')">🧠 Gradient</button>
+    <button onclick="changeBadgeStyle('ai-badge-matrix')">◈ Matrix/Cyber</button>
+  </div>
+
+  <script>
+    // Badge style switcher (for demo)
+    function changeBadgeStyle(styleClass) {
+      const badge = document.getElementById('aiBadge');
+      badge.className = styleClass;
+      
+      // Update active button
+      document.querySelectorAll('.style-selector button').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+    }
+
+    // Coming soon modal
+    function showComingSoon() {
+      const modal = document.createElement('div');
+      modal.style.cssText = `
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        animation: fadeIn 0.2s;
+      `;
+      
+      modal.innerHTML = `
+        <div style="
+          background: #161b22;
+          border: 2px solid #58a6ff;
+          border-radius: 12px;
+          padding: 2rem;
+          max-width: 400px;
+          text-align: center;
+          animation: slideUp 0.3s;
+        ">
+          <div style="font-size: 3rem; margin-bottom: 1rem;">🚀</div>
+          <h3 style="color: #58a6ff; margin: 0 0 1rem 0;">Coming Soon!</h3>
+          <p style="color: #e6edf3; margin: 0 0 1.5rem 0;">
+            Free Play mode is under development. Practice conversations with AI to improve your cybersecurity skills!
+          </p>
+          <button onclick="this.closest('div[style*=fixed]').remove()" style="
+            padding: 0.75rem 2rem;
+            background: #58a6ff;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+          ">
+            Got it!
+          </button>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+    }
+  </script>
+</body>
+</html>
