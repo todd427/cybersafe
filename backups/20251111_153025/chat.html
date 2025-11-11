@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Training - Cyber Safer</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header>
+    <a href="/" class="logo">🛡️ Cyber Safer</a>
+    <span class="mode-indicator" id="categoryName"></span>
+  </header>
+
+  <main style="padding: 0;">
+    <div class="chat-container">
+      <div class="chat-messages" id="messages">
+        <!-- Messages appear here -->
+      </div>
+
+      <div class="chat-input">
+        <input 
+          type="text" 
+          id="messageInput" 
+          placeholder="Type your response..." 
+          autocomplete="off"
+        >
+        <button id="sendButton">Send</button>
+        <button class="danger" id="finishButton">Finish</button>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script>
+    let scenarioId = null;
+    let adversaryName = 'Assistant';
+    let isSending = false;
+
+    function addMessage(who, text, name = null) {
+      const messagesDiv = document.getElementById('messages');
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${who}`;
+      
+      const label = document.createElement('span');
+      label.className = 'label';
+      label.textContent = who === 'user' ? 'You:' : `${name || adversaryName}:`;
+      
+      const content = document.createElement('div');
+      content.className = 'content';
+      content.textContent = text;
+      
+      messageDiv.appendChild(label);
+      messageDiv.appendChild(content);
+      messagesDiv.appendChild(messageDiv);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      
+      return messageDiv;
+    }
+
+    function updateLastMessage(chunk) {
+      const messagesDiv = document.getElementById('messages');
+      let lastMsg = messagesDiv.lastElementChild;
+      
+      if (!lastMsg || !lastMsg.classList.contains('bot') || lastMsg.dataset.complete) {
+        lastMsg = document.createElement('div');
+        lastMsg.className = 'message bot';
+        
+        const label = document.createElement('span');
+        label.className = 'label';
+        label.textContent = `${adversaryName}:`;
+        
+        const content = document.createElement('div');
+        content.className = 'content';
+        content.textContent = '';
+        
+        lastMsg.appendChild(label);
+        lastMsg.appendChild(content);
+        messagesDiv.appendChild(lastMsg);
+      }
+      
+      const content = lastMsg.querySelector('.content');
+      content.textContent += chunk;
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById('messageInput');
+      const sendButton = document.getElementById('sendButton');
+      const text = input.value.trim();
+      
+      if (!text || isSending) return;
+      
+      isSending = true;
+      sendButton.disabled = true;
+      input.disabled = true;
+      input.value = '';
+      
+      addMessage('user', text);
+      
+      try {
+        const reader = await API.sendMessage(text);
+        
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          
+          const chunk = new TextDecoder().decode(value);
+          updateLastMessage(chunk);
+        }
+        
+        // Mark last message as complete
+        const lastMsg = document.getElementById('messages').lastElementChild;
+        if (lastMsg) lastMsg.dataset.complete = 'true';
+        
+      } catch (error) {
+        console.error('Send error:', error);
+        addMessage('system', 'Connection error. Please try again.');
+      } finally {
+        isSending = false;
+        sendButton.disabled = false;
+        input.disabled = false;
+        input.focus();
+      }
+    }
+
+    async function finishScenario() {
+      if (!confirm('Are you ready to see your results?')) return;
+      
+      try {
+        const results = await API.completeScenario();
+        // Store results in sessionStorage
+        sessionStorage.setItem('scenarioResults', JSON.stringify(results));
+        window.location.href = 'results.html';
+      } catch (error) {
+        alert('Failed to complete scenario. Please try again.');
+        console.error(error);
+      }
+    }
+
+    async function init() {
+      const params = new URLSearchParams(window.location.search);
+      scenarioId = params.get('id');
+      
+      if (!scenarioId) {
+        window.location.href = 'categories.html';
+        return;
+      }
+
+      try {
+        const scenario = await API.getScenario(scenarioId);
+        document.getElementById('categoryName').textContent = `Training: ${scenario.category}`;
+        document.title = `${scenario.title} - Cyber Safer`;
+        
+        // Get initial message from start response (should already be started from scenario.html)
+        const startData = await API.startScenario(scenarioId);
+        adversaryName = startData.adversary || 'Assistant';
+        
+        if (startData.initial_message) {
+          addMessage('bot', startData.initial_message, adversaryName);
+        }
+        
+      } catch (error) {
+        console.error('Init error:', error);
+      }
+      
+      // Event listeners
+      document.getElementById('sendButton').onclick = sendMessage;
+      document.getElementById('finishButton').onclick = finishScenario;
+      document.getElementById('messageInput').onkeypress = (e) => {
+        if (e.key === 'Enter' && !isSending) sendMessage();
+      };
+      
+      document.getElementById('messageInput').focus();
+    }
+
+    init();
+  </script>
+</body>
+</html>

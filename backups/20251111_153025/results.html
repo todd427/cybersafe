@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Results - Cyber Safer</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header>
+    <a href="/" class="logo">🛡️ Cyber Safer</a>
+  </header>
+
+  <main>
+    <div class="results-container">
+      <h1>Scenario Complete!</h1>
+      
+      <div class="score-display">
+        <div class="score-circle" id="scoreCircle">
+          <span id="scoreValue">0</span>
+        </div>
+        <h2 id="passStatus">Processing...</h2>
+      </div>
+
+      <div class="flag-list">
+        <h2>Red Flags</h2>
+        <div id="flagsContainer"></div>
+      </div>
+
+      <div class="feedback-box" id="feedbackBox">
+        <h2>Feedback</h2>
+        <div id="feedbackContent"></div>
+      </div>
+
+      <div class="text-center mt-2">
+        <a href="categories.html" class="button big-button">Try Another Scenario</a>
+        <a href="/" class="button secondary">← Main Menu</a>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    function formatFeedback(text) {
+      // Convert numbered lists to HTML
+      const lines = text.split(/\d+[\)\.]\s*/);
+      
+      if (lines.length > 2) {
+        const intro = lines[0].trim();
+        const items = lines.slice(1).filter(l => l.trim());
+        
+        let html = intro ? `<p>${intro}</p>` : '';
+        html += '<ul>';
+        items.forEach(item => {
+          html += `<li>${item.trim()}</li>`;
+        });
+        html += '</ul>';
+        return html;
+      }
+      
+      return `<p>${text}</p>`;
+    }
+
+    function displayResults() {
+      const resultsJson = sessionStorage.getItem('scenarioResults');
+      
+      if (!resultsJson) {
+        document.querySelector('.results-container').innerHTML = 
+          '<h1>Error</h1><p>No results found. Please complete a scenario first.</p>' +
+          '<a href="categories.html" class="button">Back to Categories</a>';
+        return;
+      }
+
+      const results = JSON.parse(resultsJson);
+      
+      // Display score
+      document.getElementById('scoreValue').textContent = results.score;
+      const scoreCircle = document.getElementById('scoreCircle');
+      scoreCircle.classList.add(results.passed ? 'passed' : 'failed');
+      
+      document.getElementById('passStatus').textContent = 
+        results.passed ? '✅ Passed!' : '❌ Keep Practicing';
+      
+      // Display red flags
+      const flagsContainer = document.getElementById('flagsContainer');
+      
+      results.success_criteria_total.forEach(flag => {
+        const flagDiv = document.createElement('div');
+        const detected = results.success_criteria_met.includes(flag);
+        flagDiv.className = `flag-item ${detected ? 'detected' : 'missed'}`;
+        flagDiv.textContent = `${detected ? '✅' : '❌'} ${flag.replace(/_/g, ' ')}`;
+        flagsContainer.appendChild(flagDiv);
+      });
+      
+      // Display feedback
+      document.getElementById('feedbackContent').innerHTML = formatFeedback(results.feedback);
+      
+      // Clear results from storage
+      sessionStorage.removeItem('scenarioResults');
+    }
+
+    displayResults();
+  </script>
+</body>
+</html>

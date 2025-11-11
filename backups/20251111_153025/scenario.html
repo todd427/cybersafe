@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scenario - Cyber Safer</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header>
+    <a href="/" class="logo">🛡️ Cyber Safer</a>
+    <span class="mode-indicator" id="categoryName"></span>
+  </header>
+
+  <main>
+    <div class="container" style="max-width: 800px;">
+      <h1 id="scenarioTitle">Loading...</h1>
+      
+      <div class="intro-box" id="introText">
+        <!-- Introduction will be loaded here -->
+      </div>
+
+      <div class="text-center">
+        <a href="#" id="beginButton" class="button big-button">Begin Scenario</a>
+        <a href="javascript:history.back()" class="button secondary">← Back to Scenarios</a>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script>
+    let scenarioId = null;
+
+    async function loadScenario() {
+      const params = new URLSearchParams(window.location.search);
+      scenarioId = params.get('id');
+      
+      if (!scenarioId) {
+        window.location.href = 'categories.html';
+        return;
+      }
+
+      try {
+        const scenario = await API.getScenario(scenarioId);
+        
+        document.getElementById('scenarioTitle').textContent = scenario.title;
+        document.getElementById('introText').textContent = scenario.introduction;
+        document.getElementById('categoryName').textContent = `Training: ${scenario.category}`;
+        document.title = `${scenario.title} - Cyber Safer`;
+        
+        // Set up begin button
+        document.getElementById('beginButton').onclick = async (e) => {
+          e.preventDefault();
+          try {
+            await API.startScenario(scenarioId);
+            window.location.href = `chat.html?id=${scenarioId}`;
+          } catch (error) {
+            alert('Failed to start scenario. Please try again.');
+            console.error(error);
+          }
+        };
+      } catch (error) {
+        console.error('Failed to load scenario:', error);
+        document.getElementById('introText').innerHTML = 
+          '<p style="color: var(--danger)">Failed to load scenario. Please try again.</p>';
+      }
+    }
+
+    loadScenario();
+  </script>
+</body>
+</html>
