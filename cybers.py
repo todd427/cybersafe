@@ -103,7 +103,12 @@ def detect_red_flags(user_message: str, red_flags: List[str]) -> List[str]:
     
     # Red flag keywords mapping
     flag_keywords = {
-        "questions_sender": ["who are you", "who is this", "are you really", "is that really you", "is this really", "prove who you", "prove you're"],
+        "questions_sender": [
+            "who are you", "who is this", "who is that",
+            "are you really", "is that really you", "is that you really", "is that you,",
+            "is this really", "are you actually", "is this actually",
+            "prove who you", "prove you're", "prove this is"
+        ],
         "refuses_to_click": ["won't click", "not clicking", "don't trust", "suspicious link", "not opening", "won't open"],
         "checks_url": ["url", "link", "address", "domain", "website"],
         "reports_phishing": ["report", "spam", "phishing", "scam", "reporting"],
@@ -117,7 +122,7 @@ def detect_red_flags(user_message: str, red_flags: List[str]) -> List[str]:
         "verifies_independently": [
             "check myself", "look it up", "verify elsewhere", 
             "call them directly", "call you directly",
-            "verify on", "check on instagram", "check on facebook",
+            "verify on", "verify you on", "check on instagram", "check you on",
             "verify this", "check this myself", "confirm myself"
         ]
     }
@@ -437,6 +442,12 @@ async def chat_stream(payload: Dict[str, str]):
                     total_flags = len(scenario_state.red_flags_detected)
                     start_num = total_flags - len(new_flags) + 1
                     
+                    # Send counter update as special marker
+                    success_criteria = current_scenario.get("success_criteria", [])
+                    detected_count = len([f for f in success_criteria if f in scenario_state.red_flags_detected])
+                    total_required = len(success_criteria)
+                    yield f"[COUNTER:{detected_count}/{total_required}]\n"
+                    
                     for i, flag in enumerate(new_flags):
                         flag_name = flag.replace('_', ' ').title()
                         flag_msg = f"🚩 RED FLAG #{start_num + i} DETECTED: {flag_name}\n"
@@ -501,6 +512,25 @@ async def exit_scenario():
     print("👋 Exited scenario mode")
     
     return {"ok": True, "message": "Exited scenario mode"}
+
+@app.get("/api/scenario/status")
+async def get_scenario_status():
+    """Get current scenario status including red flag count."""
+    if not current_scenario or not scenario_state:
+        return {"active": False}
+    
+    success_criteria = current_scenario.get("success_criteria", [])
+    total_required = len(success_criteria)
+    detected_count = len([f for f in success_criteria if f in scenario_state.red_flags_detected])
+    
+    return {
+        "active": True,
+        "scenario_id": current_scenario.get("id"),
+        "red_flags_detected": len(scenario_state.red_flags_detected),
+        "red_flags_required": total_required,
+        "red_flags_found": detected_count,
+        "all_detected_flags": list(set(scenario_state.red_flags_detected))
+    }
 
 # ---------- Serve static UI ----------
 app.mount("/", StaticFiles(directory="static", html=True), name="static")

@@ -1,51 +1,93 @@
-// Cyber Safer - API Module
+// PATCH FOR static/js/api.js or chat.html JavaScript
+// Add this to handle counter updates from the backend
 
-const API = {
-  baseUrl: window.location.origin,
+// In the message streaming handler, add this before displaying tokens:
 
-  // Get all scenarios grouped by category
-  async getScenarios() {
-    const res = await fetch(`${this.baseUrl}/api/scenarios`);
-    return await res.json();
-  },
-
-  // Get a specific scenario
-  async getScenario(scenarioId) {
-    const res = await fetch(`${this.baseUrl}/api/scenario/${scenarioId}`);
-    return await res.json();
-  },
-
-  // Start a scenario session
-  async startScenario(scenarioId) {
-    const res = await fetch(`${this.baseUrl}/api/scenario/${scenarioId}/start`, {
-      method: 'POST'
-    });
-    return await res.json();
-  },
-
-  // Send a message (streaming)
-  async sendMessage(message) {
-    const res = await fetch(`${this.baseUrl}/api/chat/stream`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message })
-    });
-    return res.body.getReader();
-  },
-
-  // Complete the scenario and get results
-  async completeScenario() {
-    const res = await fetch(`${this.baseUrl}/api/scenario/complete`, {
-      method: 'POST'
-    });
-    return await res.json();
-  },
-
-  // Exit scenario mode
-  async exitScenario() {
-    const res = await fetch(`${this.baseUrl}/api/scenario/exit`, {
-      method: 'POST'
-    });
-    return await res.json();
+function updateLastMessage(chunk) {
+  const messagesDiv = document.getElementById('messages');
+  let lastMsg = messagesDiv.lastElementChild;
+  
+  // Check for counter update marker
+  if (chunk.startsWith('[COUNTER:') && chunk.includes(']')) {
+    const match = chunk.match(/\[COUNTER:(\d+)\/(\d+)\]/);
+    if (match) {
+      const [_, current, total] = match;
+      updateCounter(parseInt(current), parseInt(total));
+      // Don't display the marker itself
+      chunk = chunk.replace(/\[COUNTER:\d+\/\d+\]\n?/, '');
+      if (!chunk) return; // Skip if only counter marker
+    }
   }
-};
+  
+  if (!lastMsg || !lastMsg.classList.contains('bot') || lastMsg.dataset.complete) {
+    lastMsg = document.createElement('div');
+    lastMsg.className = 'message bot';
+    
+    const label = document.createElement('span');
+    label.className = 'label';
+    label.textContent = `${adversaryName}:`;
+    
+    const content = document.createElement('div');
+    content.className = 'content';
+    content.textContent = '';
+    
+    lastMsg.appendChild(label);
+    lastMsg.appendChild(content);
+    messagesDiv.appendChild(lastMsg);
+  }
+  
+  const content = lastMsg.querySelector('.content');
+  content.textContent += chunk;
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+function updateCounter(current, total) {
+  // Update the counter display in the header
+  const counterElement = document.getElementById('redFlagCounter');
+  if (counterElement) {
+    counterElement.textContent = `${current}/${total}`;
+  }
+  
+  // Update progress bar if exists
+  const progressBar = document.querySelector('.progress-bar');
+  if (progressBar && total > 0) {
+    const percentage = (current / total) * 100;
+    progressBar.style.width = `${percentage}%`;
+  }
+  
+  console.log(`🚩 Counter updated: ${current}/${total}`);
+}
+
+// Alternative: Poll for status updates
+// Add this to periodically check the counter:
+
+let statusCheckInterval = null;
+
+function startStatusPolling() {
+  if (statusCheckInterval) return;
+  
+  statusCheckInterval = setInterval(async () => {
+    try {
+      const response = await fetch('/api/scenario/status');
+      const status = await response.json();
+      
+      if (status.active) {
+        updateCounter(status.red_flags_found, status.red_flags_required);
+      } else {
+        stopStatusPolling();
+      }
+    } catch (error) {
+      console.error('Status check failed:', error);
+    }
+  }, 2000); // Check every 2 seconds
+}
+
+function stopStatusPolling() {
+  if (statusCheckInterval) {
+    clearInterval(statusCheckInterval);
+    statusCheckInterval = null;
+  }
+}
+
+// Call startStatusPolling() when scenario begins
+// Call stopStatusPolling() when scenario ends
