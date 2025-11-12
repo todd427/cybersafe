@@ -5,7 +5,7 @@ Cyber Safer — Interactive cybersecurity training through AI-powered scenarios.
 FIXED VERSION with correct /api routes
 
 Run:
-  uvicorn cybers_fixed:app --reload --port 8021
+  uvicorn cybers:app --reload --port 8021
 Then open http://localhost:8021/
 """
 
@@ -159,13 +159,38 @@ tok.padding_side = "left"
 if tok.pad_token_id is None and tok.eos_token_id is not None:
     tok.pad_token = tok.eos_token
 
+print(f"🔧 Quantization: {BITS}-bit" if BITS else "🔧 No quantization")
+print(f"🖥️  Device: {'CUDA' if torch.cuda.is_available() else 'CPU'}")
+if torch.cuda.is_available():
+    print(f"🎮 GPU: {torch.cuda.get_device_name(0)}")
+    print(f"💾 GPU Memory: {torch.cuda.get_device_properties(0).total_memory / 1e9:.2f} GB")
+print(f"⏳ Loading model (this may take 1-2 minutes)...")
+
+# Force CUDA usage if available
+device_map_setting = "cuda" if torch.cuda.is_available() else "auto"
+print(f"📍 Device map: {device_map_setting}")
+
 mdl = AutoModelForCausalLM.from_pretrained(
     MODEL_NAME,
-    device_map="auto",
+    device_map=device_map_setting,  # Force cuda if available
     torch_dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32,
     trust_remote_code=TRUST_REMOTE,
     quantization_config=bnb,
 ).eval()
+
+print(f"✅ Model loaded successfully!")
+
+# Verify model is on GPU
+if torch.cuda.is_available():
+    model_device = next(mdl.parameters()).device
+    print(f"✅ Model is on: {model_device}")
+    if str(model_device) == "cpu":
+        print("⚠️  WARNING: Model loaded to CPU despite CUDA being available!")
+        print("   This will be MUCH slower. Check your PyTorch installation.")
+else:
+    print(f"⚠️  Running on CPU (no CUDA available)")
+
+print(f"📊 Model size: {sum(p.numel() for p in mdl.parameters()) / 1e9:.2f}B parameters")
 
 # ---------- Global state ----------
 
@@ -218,39 +243,65 @@ async def stream_response(message: str) -> AsyncGenerator[str, None]:
     temp = player.get("temperature", 0.7)
     top_p = player.get("top_p", 0.9)
     
+    print(f"💬 User message: {message[:50]}...")
+    print(f"🎯 Generating with max_tokens={max_tokens}, temp={temp}, top_p={top_p}")
+    print(f"🖥️  Model device: {mdl.device}")
+    
     msgs = [{"role": "system", "content": system_text}]
     msgs.extend(conversation_history)
     msgs.append({"role": "user", "content": message})
     
     prompt = tok.apply_chat_template(msgs, tokenize=False, add_generation_prompt=True)
-    inputs = tok([prompt], return_tensors="pt").to(mdl.device)
+    
+    # Explicitly move inputs to the correct device
+    device = next(mdl.parameters()).device
+    inputs = tok([prompt], return_tensors="pt")
+    
+    # Move each tensor to device explicitly
+    inputs = {k: v.to(device) for k, v in inputs.items()}
+    
+    print(f"📍 Inputs on device: {inputs['input_ids'].device}")
 
     streamer = TextIteratorStreamer(tok, skip_prompt=True, skip_special_tokens=True)
     
     collected_response = []
+    token_count = 0
     
     def generate_and_stream():
-        mdl.generate(
-            **inputs,
-            streamer=streamer,
-            max_new_tokens=max_tokens,
-            temperature=temp,
-            top_p=top_p,
-            do_sample=True,
-            use_cache=True,
-            eos_token_id=tok.eos_token_id,
-            pad_token_id=tok.pad_token_id,
-        )
+        print("🚀 Starting generation thread...")
+        print(f"   Model is on: {next(mdl.parameters()).device}")
+        print(f"   Inputs are on: {inputs['input_ids'].device}")
+        
+        with torch.cuda.amp.autocast(enabled=torch.cuda.is_available()):
+            mdl.generate(
+                **inputs,
+                streamer=streamer,
+                max_new_tokens=max_tokens,
+                temperature=temp,
+                top_p=top_p,
+                do_sample=True,
+                use_cache=True,
+                eos_token_id=tok.eos_token_id,
+                pad_token_id=tok.pad_token_id,
+            )
+        print("✓ Generation thread completed")
     
     thread = threading.Thread(target=generate_and_stream, daemon=True)
     thread.start()
     
+    print("⏳ Streaming tokens...")
     for token in streamer:
         collected_response.append(token)
+        token_count += 1
+        if token_count % 10 == 0:
+            print(f"  ... {token_count} tokens generated")
         yield token
     
+    full_response = "".join(collected_response)
+    print(f"✅ Response complete: {len(full_response)} chars, {token_count} tokens")
+    
     add_to_history("user", message)
-    add_to_history("assistant", "".join(collected_response))
+    add_to_history("assistant", full_response)
 
 # ---------- Startup ----------
 
