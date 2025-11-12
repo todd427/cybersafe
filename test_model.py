@@ -54,15 +54,32 @@ def test_model():
         
         # Load model
         print("\n2️⃣  Loading model (largest step, please wait)...")
+        
+        # Force CUDA device mapping - use dict to force everything to GPU 0
+        if torch.cuda.is_available():
+            device_map_setting = {"": 0}  # Force EVERYTHING to GPU 0
+            print(f"   📍 Device map: Forcing all layers to GPU 0")
+        else:
+            device_map_setting = "auto"
+            print(f"   📍 Device map: auto (CPU mode)")
+        
         mdl = AutoModelForCausalLM.from_pretrained(
             MODEL_NAME,
-            device_map="auto",
+            device_map=device_map_setting,  # Force all to GPU
             dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32,
             trust_remote_code=True,
             quantization_config=bnb,
-            offload_buffers=True,
+            # Remove offload_buffers - it's causing the issue
         ).eval()
         print("   ✅ Model loaded")
+        
+        # Verify model device
+        if torch.cuda.is_available():
+            model_device = next(mdl.parameters()).device
+            print(f"   ✅ Model is on: {model_device}")
+            if str(model_device) == "cpu":
+                print("   ⚠️  WARNING: Model on CPU despite CUDA available!")
+                print("      This will be MUCH slower.")
         
         # Calculate model size
         param_count = sum(p.numel() for p in mdl.parameters()) / 1e9
@@ -78,9 +95,15 @@ def test_model():
         
         msgs = [{"role": "user", "content": test_message}]
         prompt = tok.apply_chat_template(msgs, tokenize=False, add_generation_prompt=True)
-        inputs = tok([prompt], return_tensors="pt").to(mdl.device)
         
-        print("🚀 Generating response...")
+        # Explicit device placement
+        device = next(mdl.parameters()).device
+        inputs = tok([prompt], return_tensors="pt")
+        inputs = {k: v.to(device) for k, v in inputs.items()}
+        
+        print(f"🚀 Generating response...")
+        print(f"   Model on: {device}")
+        print(f"   Inputs on: {inputs['input_ids'].device}")
         
         with torch.no_grad():
             outputs = mdl.generate(

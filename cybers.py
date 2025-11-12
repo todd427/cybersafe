@@ -103,18 +103,23 @@ def detect_red_flags(user_message: str, red_flags: List[str]) -> List[str]:
     
     # Red flag keywords mapping
     flag_keywords = {
-        "questions_sender": ["who are you", "who is this", "verify", "prove", "real", "legitimate", "are you really"],
+        "questions_sender": ["who are you", "who is this", "are you really", "is that really you", "is this really", "prove who you", "prove you're"],
         "refuses_to_click": ["won't click", "not clicking", "don't trust", "suspicious link", "not opening", "won't open"],
         "checks_url": ["url", "link", "address", "domain", "website"],
         "reports_phishing": ["report", "spam", "phishing", "scam", "reporting"],
         "questions_urgency": ["why urgent", "why now", "what happens if", "why 24 hours", "why immediate"],
-        "asks_for_proof": ["proof", "evidence", "show me", "verify", "confirm"],
+        "asks_for_proof": ["show me proof", "need proof", "provide evidence", "show evidence"],
         "refuses_money": ["no money", "won't pay", "not sending", "can't afford", "won't give"],
         "blocks_contact": ["block", "blocking you", "stop contacting", "leave me alone"],
         "tells_adult": ["tell parent", "tell teacher", "get help", "talk to adult", "ask parent"],
         "questions_personal_info": ["why do you need", "why personal", "don't give info"],
         "recognizes_manipulation": ["manipulating", "trying to trick", "not fair", "guilt trip"],
-        "verifies_independently": ["check myself", "look it up", "verify elsewhere", "call them directly"]
+        "verifies_independently": [
+            "check myself", "look it up", "verify elsewhere", 
+            "call them directly", "call you directly",
+            "verify on", "check on instagram", "check on facebook",
+            "verify this", "check this myself", "confirm myself"
+        ]
     }
     
     for flag in red_flags:
@@ -166,16 +171,21 @@ if torch.cuda.is_available():
     print(f"💾 GPU Memory: {torch.cuda.get_device_properties(0).total_memory / 1e9:.2f} GB")
 print(f"⏳ Loading model (this may take 1-2 minutes)...")
 
-# Force CUDA usage if available
-device_map_setting = "cuda" if torch.cuda.is_available() else "auto"
-print(f"📍 Device map: {device_map_setting}")
+# Force CUDA usage if available - use aggressive device_map
+if torch.cuda.is_available():
+    device_map_setting = {"": 0}  # Force ALL layers to GPU 0
+    print(f"📍 Device map: Forcing all layers to GPU 0")
+else:
+    device_map_setting = "auto"
+    print(f"📍 Device map: auto (CPU mode)")
 
 mdl = AutoModelForCausalLM.from_pretrained(
     MODEL_NAME,
-    device_map=device_map_setting,  # Force cuda if available
-    torch_dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32,
+    device_map=device_map_setting,  # Force all to GPU
+    dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32,
     trust_remote_code=TRUST_REMOTE,
     quantization_config=bnb,
+    # Don't use offload_buffers - causes offloading to CPU
 ).eval()
 
 print(f"✅ Model loaded successfully!")
@@ -397,22 +407,48 @@ async def start_scenario(scenario_id: str):
 
 @app.post("/api/chat/stream")
 async def chat_stream(payload: Dict[str, str]):
-    """Streamed chat endpoint - works in both normal and scenario mode."""
+    """Streamed chat endpoint - shows red flags in real-time."""
     message = payload.get("message", "").strip()
     if not message:
         raise HTTPException(status_code=400, detail="Empty message.")
     
-    # If in scenario mode, track red flags
-    if current_scenario and scenario_state:
-        red_flags = current_scenario.get("red_flags", [])
-        detected = detect_red_flags(message, red_flags)
+    async def stream_with_flags():
+        """Stream both red flag alerts and AI response."""
+        detected_flags = []
         
-        if detected:
-            scenario_state.red_flags_detected.extend(detected)
-            scenario_state.user_responses.append(message)
-            print(f"🚩 Red flags detected: {detected}")
+        # If in scenario mode, detect flags BEFORE streaming response
+        if current_scenario and scenario_state:
+            red_flags = current_scenario.get("red_flags", [])
+            detected_flags = detect_red_flags(message, red_flags)
+            
+            if detected_flags:
+                # Add newly detected flags to state
+                new_flags = []
+                for flag in detected_flags:
+                    if flag not in scenario_state.red_flags_detected:
+                        scenario_state.red_flags_detected.append(flag)
+                        new_flags.append(flag)
+                
+                scenario_state.user_responses.append(message)
+                print(f"🚩 Red flags detected: {detected_flags}")
+                
+                # Stream flag notifications FIRST
+                if new_flags:
+                    total_flags = len(scenario_state.red_flags_detected)
+                    start_num = total_flags - len(new_flags) + 1
+                    
+                    for i, flag in enumerate(new_flags):
+                        flag_name = flag.replace('_', ' ').title()
+                        flag_msg = f"🚩 RED FLAG #{start_num + i} DETECTED: {flag_name}\n"
+                        yield flag_msg
+                    
+                    yield "\n"  # Separator before AI response
+        
+        # Now stream the normal AI response
+        async for token in stream_response(message):
+            yield token
     
-    return StreamingResponse(stream_response(message), media_type="text/plain")
+    return StreamingResponse(stream_with_flags(), media_type="text/plain")
 
 @app.post("/api/scenario/complete")
 async def complete_scenario():
