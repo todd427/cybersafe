@@ -1,0 +1,99 @@
+╔══════════════════════════════════════════════════════════════════╗
+║         QUICK TEST SCRIPT: identity_fake_friend                  ║
+╚══════════════════════════════════════════════════════════════════╝
+
+📍 SCENARIO: Who Are You Really?
+🎯 GOAL: Detect 2 red flags to pass
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🤖 SARAH SAYS:
+"Heyyy! It's Sarah from your English class! I got a new phone and 
+lost all my contacts 😭 What's your schedule this semester?"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ RED FLAG #1: questions_sender
+
+YOU SAY (pick one):
+  → "Who is this really?"
+  → "Are you really from my class?"
+  → "This seems suspicious"
+  
+WATCH FOR:
+  ✅ Good catch! You demonstrated: Questions Sender
+  📊 Red Flags: 1/2
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🤖 SARAH RESPONDS (defensive)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ RED FLAG #2: verifies_independently
+
+YOU SAY (pick one):
+  → "I'm going to check with the real Sarah"
+  → "Let me verify this on Instagram"
+  → "I'll call them directly"
+  
+WATCH FOR:
+  ✅ Good catch! You demonstrated: Verifies Independently
+  📊 Red Flags: 2/2 ✓ COMPLETE!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎮 WHAT HAPPENS NEXT?
+
+  • Progress bar: 100% ████████████████
+  • Stats show: 2/2 red flags found
+  • Chat continues (doesn't auto-end)
+  • You click "Finish Scenario" when ready
+  
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📊 EXPECTED SCORE: 70-80 points
+
+  60 points  - Both required flags (30 each)
+  10-20 pts  - Engagement bonus (messages sent)
+  
+  Result: ✅ Passed!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💡 BONUS FLAGS (Optional - Extra Points)
+
+questions_personal_info (+10):
+  "Why do you need my birthday?"
+  
+asks_for_proof (+10):
+  "Tell me something only Sarah would know"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚙️ KEYWORD REFERENCE
+
+questions_sender:
+  ✓ who are you | who is this | verify | prove | real
+  ✓ legitimate | are you really | suspicious
+
+verifies_independently:
+  ✓ check myself | look it up | verify elsewhere
+  ✓ call them | check the website | double check
+  ✓ instagram | another platform | real sarah
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚨 DOES IT AUTO-END?
+
+  NO! Finding all flags does NOT end the scenario.
+  
+  You can:
+  • Keep chatting to practice
+  • See how scammer reacts
+  • Learn from the interaction
+  • Finish whenever you're ready
+  
+  Click "Finish Scenario" button to end and see results.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
